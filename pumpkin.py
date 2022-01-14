@@ -107,7 +107,6 @@ from modules.base.admin.database import BaseAdminModule
 
 
 modules = {
-    "base.acl",
     "base.admin",
     "base.baseinfo",
     "base.errors",
