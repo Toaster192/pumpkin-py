@@ -12,7 +12,6 @@ __pycache__
 # Bot data
 _local/*
 logs/*
-modules/*
 !modules/base
 pumpkin.db
 pumpkin.db-journal

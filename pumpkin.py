@@ -112,6 +112,7 @@ modules = {
     "base.errors",
     "base.language",
     "base.logging",
+    "cetr.matcher",
 }
 db_modules = BaseAdminModule.get_all()
 db_module_names = [m.name for m in db_modules]
