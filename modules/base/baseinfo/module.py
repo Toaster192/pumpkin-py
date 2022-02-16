@@ -17,33 +17,35 @@ class BaseInfo(commands.Cog):
 
     #
 
-    @check.acl2(check.ACLevel.EVERYONE)
-    @commands.command()
-    async def ping(self, ctx):
+    @commands.slash_command()
+    async def ping(self, inter):
         """Return latency information."""
         delay: str = "{:.2f}".format(self.bot.latency)
-        await ctx.reply(_(ctx, "Pong: **{delay}** 🏓").format(delay=delay))
+        await inter.response.send_message(
+            _(inter, "Pong: **{delay}** 🏓").format(delay=delay)
+        )
 
-    @check.acl2(check.ACLevel.EVERYONE)
-    @commands.command()
-    async def uptime(self, ctx):
+    @commands.slash_command()
+    async def uptime(self, inter):
         """Return uptime information."""
         now = datetime.datetime.now().replace(microsecond=0)
         delta = now - self.boot
 
-        embed = utils.discord.create_embed(author=ctx.author, title=_(ctx, "Uptime"))
+        embed = utils.discord.create_embed(
+            author=inter.author, title=_(inter, "Uptime")
+        )
         embed.add_field(
-            name=_(ctx, "Boot time"),
+            name=_(inter, "Boot time"),
             value=utils.time.format_datetime(self.boot),
             inline=False,
         )
         embed.add_field(
-            name=_(ctx, "Run time"),
+            name=_(inter, "Run time"),
             value=str(delta),
             inline=False,
         )
 
-        await ctx.send(embed=embed)
+        await inter.response.send_message(embed=embed)
 
 
 def setup(bot) -> None:
