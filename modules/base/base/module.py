@@ -1,8 +1,8 @@
 from math import ceil
 from typing import List, Tuple
 
-import nextcord
-from nextcord.ext import commands
+import disnake
+from disnake.ext import commands
 
 from pie import check, i18n, logger, utils
 
@@ -62,7 +62,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @userpin.command(name="set")
-    async def userpin_set(self, ctx, limit: int, channel: nextcord.TextChannel = None):
+    async def userpin_set(self, ctx, limit: int, channel: disnake.TextChannel = None):
         """Set userpin limit."""
         if limit < 1:
             raise commands.BadArgument("Limit has to be at least one.")
@@ -89,7 +89,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @userpin.command(name="unset")
-    async def userpin_unset(self, ctx, channel: nextcord.TextChannel = None):
+    async def userpin_unset(self, ctx, channel: disnake.TextChannel = None):
         if channel is None:
             UserPin.remove(ctx.guild.id, None)
             await guild_log.info(ctx.author, ctx.channel, "Userpin unset globally.")
@@ -140,7 +140,7 @@ class Base(commands.Cog):
     @check.acl2(check.ACLevel.MOD)
     @bookmarks.command(name="set")
     async def bookmarks_set(
-        self, ctx, enabled: bool, channel: nextcord.TextChannel = None
+        self, ctx, enabled: bool, channel: disnake.TextChannel = None
     ):
         """Enable or disable bookmarking."""
         if channel is None:
@@ -159,7 +159,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @bookmarks.command(name="unset")
-    async def bookmarks_unset(self, ctx, channel: nextcord.TextChannel = None):
+    async def bookmarks_unset(self, ctx, channel: disnake.TextChannel = None):
         """Remove bookmark settings."""
         if channel is None:
             Bookmark.remove(ctx.guild.id, None)
@@ -210,7 +210,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.SUBMOD)
     @userthread.command(name="get")
-    async def userthread_get(self, ctx, channel: nextcord.TextChannel = None):
+    async def userthread_get(self, ctx, channel: disnake.TextChannel = None):
         embed = utils.discord.create_embed(
             author=ctx.author, title=_(ctx, "Userthread 🧵")
         )
@@ -238,7 +238,7 @@ class Base(commands.Cog):
     @check.acl2(check.ACLevel.MOD)
     @userthread.command(name="set")
     async def userthread_set(
-        self, ctx, limit: int, channel: nextcord.TextChannel = None
+        self, ctx, limit: int, channel: disnake.TextChannel = None
     ):
         if limit < 0:
             await ctx.reply(
@@ -272,7 +272,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @userthread.command(name="unset")
-    async def userthread_unset(self, ctx, channel: nextcord.TextChannel = None):
+    async def userthread_unset(self, ctx, channel: disnake.TextChannel = None):
         if channel is None:
             UserThread.remove(ctx.guild.id, None)
             await guild_log.info(ctx.author, ctx.channel, "Userthread unset globally.")
@@ -292,7 +292,7 @@ class Base(commands.Cog):
     @check.acl2(check.ACLevel.SUBMOD)
     @autothread.command(name="list")
     async def autothread_list(self, ctx):
-        channels: List[Tuple[nextcord.TextChannel, AutoThread]] = []
+        channels: List[Tuple[disnake.TextChannel, AutoThread]] = []
 
         for item in AutoThread.get_all(ctx.guild.id):
             channel = ctx.guild.get_channel(item.channel_id)
@@ -326,7 +326,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @autothread.command(name="set")
-    async def autothread_set(self, ctx, channel: nextcord.TextChannel, duration: str):
+    async def autothread_set(self, ctx, channel: disnake.TextChannel, duration: str):
         try:
             duration_translated = self.durations[duration]
         except KeyError:
@@ -349,7 +349,7 @@ class Base(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @autothread.command(name="unset")
-    async def autothread_unset(self, ctx, channel: nextcord.TextChannel = None):
+    async def autothread_unset(self, ctx, channel: disnake.TextChannel = None):
         if channel is None:
             channel = ctx.channel
         result = AutoThread.remove(ctx.guild.id, channel.id)
@@ -369,10 +369,10 @@ class Base(commands.Cog):
     #
 
     @commands.Cog.listener()
-    async def on_message(self, message: nextcord.Message):
+    async def on_message(self, message: disnake.Message):
         if message.author.bot:
             return
-        if isinstance(message.channel, nextcord.abc.PrivateChannel):
+        if isinstance(message.channel, disnake.abc.PrivateChannel):
             return
         thread_settings = AutoThread.get(message.guild.id, message.channel.id)
         if thread_settings is None:
@@ -397,7 +397,7 @@ class Base(commands.Cog):
                 message.channel,
                 "A new thread created automatically.",
             )
-        except nextcord.HTTPException as exc:
+        except disnake.HTTPException as exc:
             await guild_log.error(
                 message.author,
                 message.channel,
@@ -405,7 +405,7 @@ class Base(commands.Cog):
             )
 
     @commands.Cog.listener()
-    async def on_raw_message_delete(self, payload: nextcord.RawMessageDeleteEvent):
+    async def on_raw_message_delete(self, payload: disnake.RawMessageDeleteEvent):
         """Handle thread deletion if parental message is deleted."""
         if payload.guild_id is None:
             return
@@ -436,7 +436,7 @@ class Base(commands.Cog):
                 return
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: nextcord.RawReactionActionEvent):
+    async def on_raw_reaction_add(self, payload: disnake.RawReactionActionEvent):
         """Handle message pinning."""
         emoji = getattr(payload.emoji, "name", None)
         if emoji not in ("📌", "📍", "🔖", "🧵", "🗑️"):
@@ -465,8 +465,8 @@ class Base(commands.Cog):
 
         # do not allow the actions on system messages (boost announcements etc.)
         if message.type not in (
-            nextcord.MessageType.default,
-            nextcord.MessageType.reply,
+            disnake.MessageType.default,
+            disnake.MessageType.reply,
         ):
             return
 
@@ -481,8 +481,8 @@ class Base(commands.Cog):
 
     async def _userpin(
         self,
-        payload: nextcord.RawReactionActionEvent,
-        message: nextcord.Message,
+        payload: disnake.RawReactionActionEvent,
+        message: disnake.Message,
         emoji: str,
     ):
         """Handle userpin functionality."""
@@ -532,7 +532,7 @@ class Base(commands.Cog):
                     f"Pinned message {message.jump_url}. "
                     f"Reacted by users: {', '.join(user.name for user in users)}",
                 )
-            except nextcord.errors.HTTPException:
+            except disnake.errors.HTTPException:
                 await guild_log.error(
                     payload.member, message.channel, "Could not pin message."
                 )
@@ -542,7 +542,7 @@ class Base(commands.Cog):
             await message.add_reaction("📍")
 
     async def _bookmark(
-        self, payload: nextcord.RawReactionActionEvent, message: nextcord.Message
+        self, payload: disnake.RawReactionActionEvent, message: disnake.Message
     ):
         """Handle bookmark functionality."""
         bookmark = Bookmark.get(payload.guild_id, payload.channel_id)
@@ -599,8 +599,8 @@ class Base(commands.Cog):
 
     async def _userthread(
         self,
-        payload: nextcord.RawReactionActionEvent,
-        message: nextcord.Message,
+        payload: disnake.RawReactionActionEvent,
+        message: disnake.Message,
     ):
         """Handle userthread functionality."""
         utx = i18n.TranslationContext(payload.guild_id, payload.user_id)
@@ -610,7 +610,7 @@ class Base(commands.Cog):
                 continue
 
             # we can't open threads inside of threads
-            if isinstance(message.channel, nextcord.Thread):
+            if isinstance(message.channel, disnake.Thread):
                 await reaction.clear()
                 return
 
@@ -623,7 +623,7 @@ class Base(commands.Cog):
                 limit = getattr(UserThread.get(payload.guild_id, None), "limit", 0)
 
             # get message's existing thread
-            thread_of_message: nextcord.Thread = None  # used globally in this loop
+            thread_of_message: disnake.Thread = None  # used globally in this loop
             if message.flags.has_thread:
                 for thread in message.channel.threads:
                     if thread.id == message.id:
@@ -664,7 +664,7 @@ class Base(commands.Cog):
                     f"Thread opened on a message {message.jump_url}. "
                     f"Reacted by users: {', '.join(user.name for user in users)}",
                 )
-            except nextcord.errors.HTTPException:
+            except disnake.errors.HTTPException:
                 await guild_log.error(
                     payload.member,
                     message.channel,

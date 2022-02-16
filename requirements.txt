@@ -1,5 +1,5 @@
 wheel
-nextcord>=2.0.0a3,<3.0.0
+disnake
 GitPython>=3.1.24,<4.0.0
 psycopg2-binary>=2.9.2,<3.0.0
 requests>=2.26.0,<3.0.0

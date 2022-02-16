@@ -59,7 +59,7 @@ todo_include_todos = True
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "nextcord": ("https://nextcord.readthedocs.io/en/latest/", None),
+    "disnake": ("https://disnake.readthedocs.io/en/latest/", None),
 }
 
 autodoc_default_options = {

@@ -3,8 +3,8 @@ import tempfile
 from pathlib import Path
 from typing import Optional, List
 
-import nextcord
-from nextcord.ext import commands, tasks
+import disnake
+from disnake.ext import commands, tasks
 
 import pie.database.config
 from pie import check, i18n, logger, utils
@@ -467,7 +467,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @spamchannel.command(name="add")
-    async def spamchannel_add(self, ctx, channel: nextcord.TextChannel):
+    async def spamchannel_add(self, ctx, channel: disnake.TextChannel):
         spam_channel = SpamChannel.get(ctx.guild.id, channel.id)
         if spam_channel:
             await ctx.send(
@@ -515,7 +515,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @spamchannel.command(name="remove", aliases=["rem"])
-    async def spamchannel_remove(self, ctx, channel: nextcord.TextChannel):
+    async def spamchannel_remove(self, ctx, channel: disnake.TextChannel):
         if SpamChannel.remove(ctx.guild.id, channel.id):
             message = _(ctx, "Spam channel {channel} removed.")
         else:
@@ -529,7 +529,7 @@ class Admin(commands.Cog):
 
     @check.acl2(check.ACLevel.MOD)
     @spamchannel.command(name="primary")
-    async def spamchannel_primary(self, ctx, channel: nextcord.TextChannel):
+    async def spamchannel_primary(self, ctx, channel: disnake.TextChannel):
         primary = SpamChannel.set_primary(ctx.guild.id, channel.id)
 
         if not primary:

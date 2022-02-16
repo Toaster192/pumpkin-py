@@ -4,8 +4,8 @@ from typing import Callable, Set, Optional, TypeVar
 
 import ring
 
-import nextcord
-from nextcord.ext import commands
+import disnake
+from disnake.ext import commands
 
 import pie._tracing
 from pie import i18n
@@ -42,11 +42,11 @@ def acl(ctx: commands.Context) -> bool:
     ``@commands.guild_only()``.
 
     .. note::
-        Because nextcord.py's :class:`~nextcord.ext.commands.Bot` method
-        :meth:`~nextcord.ext.commands.Bot.is_owner()` is a coroutine, we have to
+        Because disnake.py's :class:`~disnake.ext.commands.Bot` method
+        :meth:`~disnake.ext.commands.Bot.is_owner()` is a coroutine, we have to
         access the data directly, instead of loading them dynamically from the
-        API endpoint. The :attr:`~nextcord.ext.commands.Bot.owner_id`/
-        :attr:`~nextcord.ext.commands.Bot.owner_ids` argument may be ``None``:
+        API endpoint. The :attr:`~disnake.ext.commands.Bot.owner_id`/
+        :attr:`~disnake.ext.commands.Bot.owner_ids` argument may be ``None``:
         that's the reason pumpkin.py refreshes it on each ``on_ready()`` event
         in the main file.
 
@@ -147,7 +147,7 @@ def acl(ctx: commands.Context) -> bool:
 def map_member_to_ACLevel(
     *,
     bot: commands.Bot,
-    member: nextcord.Member,
+    member: disnake.Member,
 ):
     """Map member to their ACLevel."""
 

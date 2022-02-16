@@ -377,7 +377,7 @@ msgid Gateway not found
 msgstr Brána nebyla nalezena
 
 msgid Nextcord library error
-msgstr Chyba nextcord knihovny
+msgstr Chyba disnake knihovny
 
 msgid Client error
 msgstr Chyba klienta

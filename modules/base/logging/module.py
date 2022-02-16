@@ -1,6 +1,6 @@
 from typing import Optional
 
-from nextcord.ext import commands
+from disnake.ext import commands
 
 from pie import check, logger, utils, i18n
 from pie.logger.database import LogConf
