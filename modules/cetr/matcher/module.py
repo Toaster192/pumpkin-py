@@ -4,7 +4,6 @@ from nextcord.ext import commands
 from pie import utils, logger, i18n
 import pie.database.config
 
-
 from .database import History
 
 _ = i18n.Translator(__file__).translate
@@ -13,7 +12,51 @@ config = pie.database.config.Config.get()
 
 # TODO: translations etc.
 
-# TODO: display last time chatted
+
+class NotMatchedError(Exception):
+    pass
+
+
+class Matches:
+    def __init__():
+        self.parner_LUT = {}
+        self.DM_channels = {}
+
+        self.init_from_db()
+
+    def init_from_db(self):
+        for match in Match.getall():
+            add([match.user_id1, match.user_id2])
+
+    def active(self, user_id):
+        return user_id in self.partner_LUT
+
+    async def send(self, message):
+        author_id = message.author.id
+        if author_id not in self.partner_LUT:
+            raise NotMatchedError()
+
+        partners = self.partner_LUT[author_id]
+        targets = [self.DM_channels[partner] for partner in partners]
+
+        files = []
+        for attachment in message.attachments:
+            files.append(await attachment.to_file())
+
+        for target in targets:
+            await target.send(message.content, files=files)
+
+    def add(ids):
+        for user_id in ids:
+            self.partner_LUT[user_id] = [uid for uid in ids if uid != user_id]
+            if user_id not in self.DM_channels:
+                user = await self.bot.fetch_user(user_id)
+                self.DM_channels[user_id] = await user.create_dm()
+
+    def remove(ids):
+        for user_id in ids:
+            self.partner_LUT.pop(user_id)
+            self.DM_channels.pop(user_id)
 
 
 class Matcher(commands.Cog):
@@ -21,7 +64,7 @@ class Matcher(commands.Cog):
         self.bot = bot
         # TODO: Make queue a class, allow adding and stuff (db)
         self.queues = {"Main": []}
-        self.matches = {}
+        self.matches = Matches()
 
     def find_chatter(self, user_id):
         for match in self.matches.keys():
@@ -39,6 +82,8 @@ class Matcher(commands.Cog):
 
             partner = await self.bot.fetch_user(partner_id)
             partner_dm = await partner.create_dm()
+            last_matched = history.last_matched
+            History.update(history)
             self.matches[(ctx.author.id, partner_id)] = (
                 await ctx.author.create_dm(),
                 partner_dm,
@@ -46,7 +91,7 @@ class Matcher(commands.Cog):
             if history is None:
                 History.add(ctx.author.id, partner_id)
                 return partner_dm, None
-            return partner_dm, history.last_matched
+            return partner_dm, last_matched
 
         return None, None
 
@@ -80,7 +125,6 @@ class Matcher(commands.Cog):
 
     @matcher.command(name="quit")
     async def matcher_quit(self, ctx):
-        # TODO: send smth when there is no active chat
         active_chat, _ = self.find_chatter(ctx.author.id)
         if not active_chat:
             await ctx.send("What? You're not matched atm.")
@@ -92,18 +136,17 @@ class Matcher(commands.Cog):
 
     @matcher.command(name="block")
     async def matcher_block(self, ctx):
-        # TODO: send smth when there is no active chat
         active_chat, index = self.find_chatter(ctx.author.id)
-        if active_chat:
-            history = History.get(active_chat[0], active_chat[1])
-            partner_id = active_chat[(index + 1) % 2]
-            for num in (1, 2):
-                if history.getattr(f"user_id{num}") == partner_id:
-                    history.setattr(f"u{num}_blocked", True)
-
-            await ctx.send("User blocked.")
-        else:
+        if not active_chat:
             await ctx.send("What? You're not matched atm.")
+
+        history = History.get(active_chat[0], active_chat[1])
+        partner_id = active_chat[(index + 1) % 2]
+        for num in (1, 2):
+            if history.getattr(f"user_id{num}") == partner_id:
+                history.setattr(f"u{num}_blocked", True)
+
+        await ctx.send("User blocked.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -114,10 +157,8 @@ class Matcher(commands.Cog):
         if message.content.startswith(config.prefix):
             return
 
-        active_chat, index = self.find_chatter(message.author.id)
-        if active_chat:
-            active_chat = self.matches[active_chat]
-            await active_chat[(index + 1) % 2].send(message.content)
+        if self.matches.active(message.author.id):
+            self.matches.send(message)
             await message.add_reaction("✅")
         else:
             await message.add_reaction("❓")
